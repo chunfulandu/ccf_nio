@@ -48,11 +48,9 @@ class AlternateDemo {
             while (number != 2) {
                 condition2.await();
             }
-
             System.out.println(Thread.currentThread().getName() + ", currentLoopNum is " + loopNum);
             number = 3;
             condition3.signal();
-
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
