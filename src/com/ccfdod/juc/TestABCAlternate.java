@@ -10,27 +10,27 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 class AlternateDemo {
     //标志当前由哪一个线程输出，1代表A，2代表B，3代表C
-    private int num = 1;
+    private int number = 1;
 
-    Lock lock = new ReentrantLock();
+    private Lock lock = new ReentrantLock();
 
     //Condition的强大之处在于它可以为多个线程间建立不同的Condition
-    Condition condition1 = lock.newCondition();
-    Condition condition2 = lock.newCondition();
-    Condition condition3 = lock.newCondition();
+    private Condition condition1 = lock.newCondition();
+    private Condition condition2 = lock.newCondition();
+    private Condition condition3 = lock.newCondition();
 
     // loopNum:当前循环轮数
-    public void loopA(int loopNum) {
+    void loopA(int loopNum) {
         //上锁
         lock.lock();
         try {
-            while (num != 1) {
+            while (number != 1) {
                 //等待
                 condition1.await();
             }
 
             System.out.println(Thread.currentThread().getName() + ", currentLoopNum is " + loopNum);
-            num = 2;
+            number = 2;
             //唤醒
             condition2.signal();
 
@@ -42,15 +42,15 @@ class AlternateDemo {
         }
     }
 
-    public void loopB(int loopNum) {
+    void loopB(int loopNum) {
         lock.lock();
         try {
-            while (num != 2) {
+            while (number != 2) {
                 condition2.await();
             }
 
             System.out.println(Thread.currentThread().getName() + ", currentLoopNum is " + loopNum);
-            num = 3;
+            number = 3;
             condition3.signal();
 
         } catch (InterruptedException e) {
@@ -60,15 +60,15 @@ class AlternateDemo {
         }
     }
 
-    public void loopC(int loopNum) {
+    void loopC(int loopNum) {
         lock.lock();
         try {
-            while (num != 3) {
+            while (number != 3) {
                 condition3.await();
             }
 
             System.out.println(Thread.currentThread().getName() + ", currentLoopNum is " + loopNum);
-            num = 1;
+            number = 1;
             condition1.signal();
 
         } catch (InterruptedException e) {
@@ -84,31 +84,19 @@ public class TestABCAlternate {
     public static void main(String[] args) {
         AlternateDemo ad = new AlternateDemo();
 
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                for (int i = 0; i < 10; i++)
-                    ad.loopA(i);
-            }
+        new Thread(() -> {
+            for (int i = 0; i < 10; i++)
+                ad.loopA(i);
         }, "A").start();
 
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                for (int i = 0; i < 10; i++)
-                    ad.loopB(i);
-            }
+        new Thread(() -> {
+            for (int i = 0; i < 10; i++)
+                ad.loopB(i);
         }, "B").start();
 
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                for (int i = 0; i < 10; i++)
-                    ad.loopC(i);
-            }
+        new Thread(() -> {
+            for (int i = 0; i < 10; i++)
+                ad.loopC(i);
         }, "C").start();
     }
 }
